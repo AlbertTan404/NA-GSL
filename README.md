@@ -1,6 +1,7 @@
 # NA-GSL
 
 A PyTorch implemention of NA-GSL: Exploring attention mechanism for graph similarity learning
+![](https://github.com/AlbertTan404/NA-GSL/blob/main/figure/model_overview.png)
 
 ## Requirements
 * python3.8
