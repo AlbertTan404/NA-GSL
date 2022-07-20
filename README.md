@@ -1,4 +1,4 @@
-#NA-GSL
+# NA-GSL
 
 A PyTorch implemention of NA-GSL: Exploring attention mechanism for graph similarity learning
 
