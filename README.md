@@ -12,5 +12,6 @@ We propose a unified graph similarity learning framework, **N**ode-wise **A**tte
 
 ## Run
 ```
+cd src
 python main.py --dataset=LINUX
 ```
