@@ -36,6 +36,9 @@ class GEDTrainer(object):
         # self.model = GraphSimTransformer(self.args).to(self.args.device)
         self.model = NAGSLNet(self.args).to(self.args.device)
         args.model_params = sum(p.numel() for p in self.model.parameters())
+
+        if args.device_count > 1:
+            self.model = torch.nn.DataParallel(self.model)
         print("model params:{}".format(self.args.model_params))
 
         if args.wandb_activate:
@@ -107,7 +110,10 @@ class GEDTrainer(object):
                                    '\tvalidation mse decreased ( {} ---> {} (e-3) ), and save the model ... '.format(
                                        min_loss * 1000, val_loss * 1000))
                     min_loss = val_loss
-                    torch.save(self.model.state_dict(), self.args.model_save_path)
+                    if self.args.device_count > 1:
+                        torch.save(self.model.module.state_dict(), self.args.model_save_path)
+                    else:
+                        torch.save(self.model.state_dict(), self.args.model_save_path)
                     patience_cnt = 0
                 else:
                     patience_cnt += 1
@@ -162,7 +168,7 @@ class GEDTrainer(object):
         if torch.cuda.device_count() == 1:
             self.model.load_state_dict(torch.load(self.args.model_save_path, map_location='cuda:0'))
         else:
-            self.model.load_state_dict(torch.load(self.args.model_save_path))
+            self.model.module.load_state_dict(torch.load(self.args.model_save_path))
 
         self.model.eval()
         scores = np.zeros((len(self.dataset.testing_graphs), len(self.dataset.training_graphs)))

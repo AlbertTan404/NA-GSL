@@ -22,7 +22,7 @@ parser.add_argument("--loaded_model_signature",
                     help="")
 
 parser.add_argument('--dataset', type=str, help='indicate the specific data set',
-                    default='LINUX')
+                    default='AIDS700nef')
 parser.add_argument('--gpu_index', type=str, help="gpu index to use",
                     default='0')
 
@@ -49,11 +49,13 @@ parser.add_argument("--share_qk",
                     default=True)
 parser.add_argument("--use_dist",
                     default=True)
+parser.add_argument('--dist_decay',
+                    default=0)
 parser.add_argument("--dist_start_decay", type=float,
                     default=0.5)
 
 parser.add_argument('--encoder_mask',
-                    default=True)
+                    default=False)
 parser.add_argument('--interaction_mask',
                     default=False)
 parser.add_argument('--align_mask',
@@ -126,6 +128,8 @@ parser.add_argument('--repeat_run', type=int, help='indicated the index of repea
 parser.add_argument('--data_dir', type=str, help='root directory for the data',
                     default='../datasets/')
 
+parser.add_argument('--GNN',
+                    default='GCN')
 
 parsed_args = parser.parse_args()
 

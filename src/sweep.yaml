@@ -1,0 +1,11 @@
+program: main.py
+method: bayes
+metric:
+  name: test_mse
+  goal: minimize
+parameters:
+  embedding_size:
+    values: [64, 128]
+
+  lr:
+    values: [0.001, 0.0005, 0.0001]

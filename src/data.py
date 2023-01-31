@@ -126,14 +126,15 @@ class GraphSimDataset(object):
             raise NotImplementedError
         self.normed_dist_mat_all *= self.args.dist_start_decay
 
-    def transform(self, data):
+    def transform(self, data, iteration=-1):
         new_data = dict()
         norm_ged = self.nged_matrix[data[0]['i'].reshape(-1).tolist(), data[1]['i'].reshape(-1).tolist()].tolist()
 
         b0 = to_dense_batch(data[0].x, batch=data[0].batch, max_num_nodes=self.n_max_nodes)
         g0 = {
-            'adj': to_dense_adj(data[0].edge_index, batch=data[0].batch, max_num_nodes=self.n_max_nodes).to(
-            self.args.device),
+            'adj': to_dense_adj(
+                data[0].edge_index, batch=data[0].batch, max_num_nodes=self.n_max_nodes
+            ).to(self.args.device),
             'x': b0[0].to(self.args.device),
             'mask': b0[1].to(self.args.device),
             'dist': None if not self.args.use_dist else self._get_normed_dis_tensor(data[0]['i']).to(self.args.device)
@@ -141,8 +142,9 @@ class GraphSimDataset(object):
 
         b1 = to_dense_batch(data[1].x, batch=data[1].batch, max_num_nodes=self.n_max_nodes)
         g1 = {
-            'adj': to_dense_adj(data[1].edge_index, batch=data[1].batch, max_num_nodes=self.n_max_nodes).to(
-            self.args.device),
+            'adj': to_dense_adj(
+                data[1].edge_index, batch=data[1].batch, max_num_nodes=self.n_max_nodes
+            ).to(self.args.device),
             'x': b1[0].to(self.args.device),
             'mask': b1[1].to(self.args.device),
             'dist': None if not self.args.use_dist else self._get_normed_dis_tensor(data[1]['i']).to(self.args.device)

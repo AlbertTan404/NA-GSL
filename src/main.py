@@ -5,11 +5,13 @@ Part of the code in <utils.py> is from SimGNN@benedekrozemberczki
 """
 
 import os
+
+from parser import parsed_args
+os.environ['CUDA_VISIBLE_DEVICES'] = parsed_args.gpu_index
 import random
 from datetime import datetime
 
 import torch
-from parser import parsed_args
 from trainer import GEDTrainer
 from utils import create_dir_if_not_exists, tab_printer, log_args
 
@@ -26,12 +28,12 @@ if __name__ == '__main__':
     if torch.cuda:
         torch.cuda.manual_seed(parsed_args.seed)
 
-    if torch.cuda.device_count() == 1:
+    parsed_args.device_count = torch.cuda.device_count()
+    if parsed_args.device_count == 1:
         parsed_args.gpu_index = '0'
 
-    d = torch.device(('cuda:' + parsed_args.gpu_index) if torch.cuda.is_available() else 'cpu')
+    d = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parsed_args.device = d
-    os.environ['CUDA_VISIBLE_DEVICES'] = parsed_args.gpu_index
 
     create_dir_if_not_exists(parsed_args.log_path)
     log_root_dir = parsed_args.log_path
