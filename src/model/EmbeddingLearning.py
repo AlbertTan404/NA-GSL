@@ -48,18 +48,29 @@ class MultiHeadAttention(nn.Module):
         d_v = self.att_size
         batch_size = x.size(0)
 
-        q = self.linear_q(x).view(batch_size, -1, self.num_heads, d_k).transpose(-2, -3)
-        k = self.linear_k(x).view(batch_size, -1, self.num_heads, d_k).transpose(-2, -3).transpose(-1, -2)
-        v = self.linear_v(x).view(batch_size, -1, self.num_heads, d_v).transpose(-2, -3)
         if self.args.encoder_mask:
+            q = self.linear_q(x).view(batch_size, -1, self.num_heads, d_k).transpose(-2, -3)
+            k = self.linear_k(x).view(batch_size, -1, self.num_heads, d_k).transpose(-2, -3).transpose(-1, -2)
+            v = self.linear_v(x).view(batch_size, -1, self.num_heads, d_v).transpose(-2, -3)
             q = torch.einsum('bhne,bn->bhne', q, mask)
             k = torch.einsum('bhen,bn->bhen', k, mask)
             v = torch.einsum('bhne,bn->bhne', v, mask)
+        else:
+            q = self.linear_q(x).view(batch_size, self.num_heads, -1, d_k)
+            k = self.linear_k(x).view(batch_size, self.num_heads, -1, d_k).transpose(-1, -2)
+            v = self.linear_v(x).view(batch_size, self.num_heads, -1, d_v)
 
         q = q * self.scale
         a = torch.matmul(q, k)
 
+        if self.args.dist_decay != 0:
+            assert 1 >= self.args.dist_decay >= 0
+            vanish_iter = self.args.iter_val_start * self.args.dist_decay
+            dist_decay = max(0, (vanish_iter - self.args.temp['cur_iter'])) / vanish_iter
+        else:
+            dist_decay = 1
         if dist is not None:
+            dist *= dist_decay
             a += torch.stack([dist] * self.args.n_heads, dim=1).to(self.args.device)
 
         # masked softmax
@@ -86,15 +97,26 @@ class GCNTransformerEncoder(nn.Module):
         super(GCNTransformerEncoder, self).__init__()
         self.args = args
 
-        self.GCN_first = DenseGCNConv(args.node_feature_size, args.embedding_size)
-        self.GCN_second = DenseGCNConv(args.embedding_size, args.embedding_size)
-        self.GCN_third = DenseGCNConv(args.embedding_size, args.embedding_size)
+        if args.GNN == 'GCN':
+            self.GCN_first = DenseGCNConv(args.node_feature_size, args.embedding_size)
+            self.GCN_second = DenseGCNConv(args.embedding_size, args.embedding_size)
+            self.GCN_third = DenseGCNConv(args.embedding_size, args.embedding_size)
+        elif args.GNN == 'SAGE':
+            self.GCN_first = DenseSAGEConv(args.node_feature_size, args.embedding_size)
+            self.GCN_second = DenseSAGEConv(args.embedding_size, args.embedding_size)
+            self.GCN_third = DenseSAGEConv(args.embedding_size, args.embedding_size)
+        elif args.GNN == 'GIN':
+            self.GCN_first = DenseGINConv(nn.Linear(args.node_feature_size, args.embedding_size))
+            self.GCN_second = DenseGINConv(nn.Linear(args.embedding_size, args.embedding_size))
+            self.GCN_third = DenseGINConv(nn.Linear(args.embedding_size, args.embedding_size))
+        else:
+            raise ValueError('GNN argument error')
 
         self.d_k = args.embedding_size
 
-        torch.nn.init.xavier_uniform_(self.GCN_first.lin.weight)
-        torch.nn.init.xavier_uniform_(self.GCN_second.lin.weight)
-        torch.nn.init.xavier_uniform_(self.GCN_third.lin.weight)
+        # torch.nn.init.xavier_uniform_(self.GCN_first.lin.weight)
+        # torch.nn.init.xavier_uniform_(self.GCN_second.lin.weight)
+        # torch.nn.init.xavier_uniform_(self.GCN_third.lin.weight)
 
         self.self_attention_norm = nn.LayerNorm(args.embedding_size)
         self.self_attention = MultiHeadAttention(args, q, k)

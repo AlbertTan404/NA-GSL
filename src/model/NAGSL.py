@@ -36,7 +36,10 @@ class NAGSLNet(torch.nn.Module):
         embeddings_0 = self.embedding_learning(x_0, adj_0, mask_0, dist_0)
         embeddings_1 = self.embedding_learning(x_1, adj_1, mask_1, dist_1)
 
-        mask_ij = torch.einsum('ij,ik->ijk', mask_0, mask_1)
+        if self.args.encoder_mask or self.args.interaction_mask or self.args.align_mask or self.args.cnn_mask:
+            mask_ij = torch.einsum('ij,ik->ijk', mask_0, mask_1)
+        else:
+            mask_ij = None
 
         sim_mat = self.embedding_interaction(embeddings_0, mask_0, embeddings_1, mask_1, mask_ij)
         score = self.sim_mat_learning(sim_mat, mask_ij)
