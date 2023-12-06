@@ -1,6 +1,6 @@
 # NA-GSL
 
-A PyTorch implementation of NA-GSL: Exploring attention mechanism for graph similarity learning [paper link](https://www.sciencedirect.com/science/article/abs/pii/S0950705123004896)
+A PyTorch implementation of NA-GSL: Exploring attention mechanism for graph similarity learning (Knowledge-Based Systems) [paper link](https://www.sciencedirect.com/science/article/abs/pii/S0950705123004896)
 
 We propose a unified graph similarity learning framework, **N**ode-wise **A**ttention guided **G**raph **S**imilarity **L**earning, **NA-GSL**, involving i) a hybrid of graph convolution and graph self-attention for node embedding learning, ii) a cross-attention (GCA) module for graph interaction modeling, iii) similarity-wise self-attention (SSA) module for graph similarity matrix fusion and alignment and iv) graph similarity structure learning for predicting the similarity score.
 
