@@ -9,7 +9,6 @@ import wandb
 import torch.nn.functional as F
 from torch_geometric.data import Batch
 from scipy.stats import spearmanr, kendalltau
-
 from datetime import datetime
 
 from data import GraphSimDataset
